@@ -6,17 +6,22 @@ from django.utils import timezone
 from django.utils.encoding import force_text
 from django.db import IntegrityError
 
-from is_core.rest.resource import RestResource
-
-from piston.response import RestNoConetentResponse
-
-from ats_sms_operator.models import InputATSSMSmessage
+from ipware.ip import get_ip
 
 from bs4 import BeautifulSoup
+
+from is_core.rest.resource import RestResource
+
+from ats_sms_operator.models import InputATSSMSmessage
+from ats_sms_operator import config
 
 
 class InputATSSMSmessageResource(RestResource):
     login_required = False
+
+    def __init__(self, request, callback_function):
+        super(InputATSSMSmessageResource, self).__init__(request)
+        self.callback_function = callback_function
 
     def _deserialize(self):
         soup = BeautifulSoup(force_text(self.request.body), 'html.parser')
@@ -41,7 +46,7 @@ class InputATSSMSmessageResource(RestResource):
         result = []
         for message in data:
             try:
-                input_message, _ = InputATSSMSmessage.objects.get_or_create(
+                input_message, created = InputATSSMSmessage.objects.get_or_create(
                     uniq=message.get('uniq'),
                     sender=message.get('sender'),
                     recipient=message.get('recipient'),
@@ -52,9 +57,14 @@ class InputATSSMSmessageResource(RestResource):
                                                      timezone.get_default_timezone()),
                     content=message.get('content')
                 )
-                result.append((22, input_message.uniq))
-            except (IntegrityError, TypeError):
+                code = 22  if self.callback_function(input_message, created) else 23
+                result.append((code, input_message.uniq))
+            except (IntegrityError, TypeError) as er:
                 if 'uniq' in message:
                     result.append((23, message.get('uniq')))
 
         return result
+
+    def has_post_permission(self, *args, **kwargs):
+        return (super(InputATSSMSmessageResource, self).has_post_permission(*args, **kwargs) and
+                (get_ip(self.request) == config.ATS_SMS_SENDER_IP or config.ATS_SMS_DEBUG))

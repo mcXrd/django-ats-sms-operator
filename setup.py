@@ -31,10 +31,11 @@ setup(
         'django>=1.6',
         'django-is-core>=1.3.55',
         'beautifulsoup4>=4.4.0',
-        'html5lib>=0.999999'
+        'html5lib>=0.999999',
+        'django-ipware>=1.0.0',
     ],
     dependency_links=[
-        'https://github.com/matllubos/django-is_core/tarball/1.3.55#egg=django-is-core-1.3.55',
+        'https://github.com/matllubos/django-is-core/tarball/1.3.55#egg=django-is-core-1.3.55',
     ],
     zip_safe=False
 )
