@@ -57,11 +57,11 @@ class InputATSSMSmessageResource(RestResource):
                                                      timezone.get_default_timezone()),
                     content=message.get('content')
                 )
-                code = 22  if self.callback_function(input_message, created) else 23
+                code = 23  if self.callback_function(input_message, created) else 24
                 result.append((code, input_message.uniq))
             except (IntegrityError, TypeError) as er:
                 if 'uniq' in message:
-                    result.append((23, message.get('uniq')))
+                    result.append((24, message.get('uniq')))
 
         return result
 
