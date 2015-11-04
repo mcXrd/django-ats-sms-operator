@@ -5,6 +5,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.db import IntegrityError
+from django.conf import settings
 
 from ipware.ip import get_ip
 
@@ -67,4 +68,4 @@ class InputATSSMSmessageResource(RestResource):
 
     def has_post_permission(self, *args, **kwargs):
         return (super(InputATSSMSmessageResource, self).has_post_permission(*args, **kwargs) and
-                (get_ip(self.request) == config.ATS_SMS_SENDER_IP or config.ATS_SMS_DEBUG))
+                (get_ip(self.request) == config.ATS_SMS_SENDER_IP or getattr(settings, 'ATS_SMS_DEBUG', False)))
