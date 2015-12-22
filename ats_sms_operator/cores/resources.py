@@ -1,23 +1,33 @@
 from __future__ import unicode_literals
 
 from datetime import datetime
-
-from django.utils import timezone
-from django.utils.encoding import force_text
-from django.db import IntegrityError
-from django.conf import settings
-
-from ipware.ip import get_ip
+from itertools import chain
 
 from bs4 import BeautifulSoup
+from ipware.ip import get_ip
 
-from is_core.rest.resource import RestResource
+from django.conf import settings
+from django.db import IntegrityError
+from django.utils import timezone
+from django.utils.encoding import force_text
 
-from ats_sms_operator.models import InputATSSMSmessage
+from is_core.rest.resource import RESTResource
+
 from ats_sms_operator import config
 
 
-class InputATSSMSmessageResource(RestResource):
+def merge(origin, *args):
+    """
+    Merges given dictionaries, `origin` will not be changed.
+    """
+    # TODO remove this once merge is in chamber
+    copy = origin.copy()
+    for dictionary in args:
+        copy.update(dictionary)
+    return copy
+
+
+class InputATSSMSmessageResource(RESTResource):
     login_required = False
 
     def __init__(self, request, callback_function):
@@ -26,41 +36,32 @@ class InputATSSMSmessageResource(RestResource):
 
     def _deserialize(self):
         soup = BeautifulSoup(force_text(self.request.body), 'html.parser')
-        data = []
-        for message in soup.messages.find_all('sms'):
-            message_data = message.attrs
-            message_data['content'] = message.string
-            data.append(message_data)
-        self.request.data = data
+
+        self.request.data = ([merge(msg.attrs, {'content': msg.string}) for msg in soup.messages.find_all('sms')]
+                             if soup.messages else ())
         return self.request
 
     def _serialize(self, result):
-        output = ['<?xml version="1.0" encoding="UTF-8" ?>']
-        output.append('<status>')
-        for code, uniq in result:
-            output.append('<code uniq="%s">%s</code>' % (uniq, code))
-        output.append('</status>')
-        return '\n'.join(output), 'text/xml'
+        return '\n'.join(chain(
+            ('<?xml version="1.0" encoding="UTF-8" ?>', '<status>'),
+            ('<code uniq="{}">{}</code>'.format(uniq, code) for code, uniq in result),
+            ('</status>',)
+        )), 'text/xml'
 
     def post(self):
         data = self.request.data
         result = []
         for message in data:
             try:
-                input_message, created = InputATSSMSmessage.objects.get_or_create(
-                    uniq=message.get('uniq'),
-                    sender=message.get('sender'),
-                    recipient=message.get('recipient'),
-                    okey=message.get('okey'),
-                    opid=message.get('opid'),
-                    opmid=message.get('opmid'),
+                input_message, created = config.get_input_sms_model().objects.get_or_create(
                     received_at=timezone.make_aware(datetime.strptime(message.get('ts'), "%Y-%m-%d %H:%M:%S"),
-                                                     timezone.get_default_timezone()),
-                    content=message.get('content')
+                                                    timezone.get_default_timezone()),
+                    **{k: v for k, v in message.items()
+                       if k in ('uniq', 'sender', 'recipient', 'okey', 'opid', 'opmid', 'content')}
                 )
-                code = 23  if self.callback_function(input_message, created) else 24
+                code = 23 if self.callback_function(input_message, created) else 24
                 result.append((code, input_message.uniq))
-            except (IntegrityError, TypeError) as er:
+            except (IntegrityError, TypeError):
                 if 'uniq' in message:
                     result.append((24, message.get('uniq')))
 

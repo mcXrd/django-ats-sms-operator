@@ -1,0 +1,1 @@
+/home/oskar/Projekty/django-ats-sms-operator/example/var/cs/start.js

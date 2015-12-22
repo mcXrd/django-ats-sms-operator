@@ -1,0 +1,1 @@
+/home/oskar/Projekty/django-ats-sms-operator/example/bower_components/c3/c3.min.js

@@ -1,6 +1,7 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 from ats_sms_operator.version import get_version
+
 
 setup(
     name='django-ats-sms-operator',
@@ -32,6 +33,17 @@ setup(
         'beautifulsoup4>=4.4.0',
         'html5lib>=0.999999',
         'django-ipware>=1.0.0',
+        'django-chamber>=0.1.7',
+        'requests==2.9.0',
+        'responses==0.5.0',
+        'germanium==1.0.5',
+        'django-factory_boy==1.0.0',
+        'django-ipware>=1.0.0',
     ],
-    zip_safe=False
+    dependency_links=[
+        'https://github.com/matllubos/django-chamber/tarball/0.1.7#egg=django-chamber-0.1.7',
+        'https://github.com/getsentry/responses/tarball/0.5.0#egg=responses-0.5.0',
+        'https://github.com/LukasRychtecky/germanium/tarball/1.0.5#egg=germanium-1.0.5',
+    ],
+    zip_safe=False,
 )

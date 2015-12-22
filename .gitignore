@@ -55,8 +55,14 @@ dj/static/js/app.js
 # Makefile config #
 ###################
 build/config
+build/
+dist/
 
 # IDE #
 ###################
 .idea
 */.idea
+
+# Vim #
+#######
+*.swp
