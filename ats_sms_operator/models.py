@@ -74,7 +74,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
         return remove_diacritics(self.content).decode('utf-8')
 
     @property
-    def is_error_state(self):
+    def failed(self):
         return self.state >= 100 or self.state in (self.STATE.REGISTRATION_OK, self.STATE.REREGISTRATION_OK,
                                                    self.STATE.UNSPECIFIED_ERROR, self.STATE.LOCAL_UNKNOWN_ATS_STATE)
 
@@ -85,7 +85,6 @@ class AbstractOutputATSSMSmessage(SmartModel):
         abstract = True
         verbose_name = _('output ATS message')
         verbose_name_plural = _('output ATS messages')
-
 
 
 @python_2_unicode_compatible
