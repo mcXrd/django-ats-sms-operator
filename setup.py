@@ -34,16 +34,6 @@ setup(
         'html5lib>=0.999999',
         'django-ipware>=1.0.0',
         'requests==2.9.0',
-        'responses==0.5.0',
-        'germanium==1.0.5',
-        'django-factory_boy==1.0.0',
-        'django-ipware>=1.0.0',
-        'django-is-core>=1.3.89',
-    ],
-    dependency_links=[
-        'https://github.com/getsentry/responses/tarball/0.5.0#egg=responses-0.5.0',
-        'https://github.com/LukasRychtecky/germanium/tarball/1.0.5#egg=germanium-1.0.5',
-        'https://github.com/matllubos/django-is-core/tarball/1.3.89#egg=django-is-core-1.3.89',
     ],
     zip_safe=False,
 )
