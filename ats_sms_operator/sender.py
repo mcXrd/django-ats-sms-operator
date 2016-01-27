@@ -5,6 +5,7 @@ from itertools import chain
 
 from bs4 import BeautifulSoup
 
+from django.db import models
 from django.conf import settings
 from django.template import Context, Template
 from django.utils import timezone
@@ -75,9 +76,10 @@ def send_ats_requests(*ats_requests):
     Performs the actual POST request with the given elementary ATS requests.
     """
     requests_xml = serialize_ats_requests(*ats_requests)
+    logged_requests = [request for request in ats_requests if isinstance(request, models.Model)]
     try:
         return requests.post(config.ATS_URL, data=requests_xml, headers={'Content-Type': 'text/xml'},
-                             slug='ATS SMS', related_objects=ats_requests)
+                             slug='ATS SMS', related_objects=logged_requests)
     except requests.exceptions.RequestException as e:
         raise SMSSendingError(str(e))
 
