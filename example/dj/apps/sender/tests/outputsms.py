@@ -181,6 +181,12 @@ class OutputSMSTestCase(TestCase):
         assert_equal(sms1.state, ATS_STATES.SENT)
         assert_equal(sms2.state, ATS_STATES.DELIVERED)
 
+    def test_send_command_should_not_send_empty_request(self):
+        SendCommand().handle()
+
+    def test_delivery_command_should_not_send_empty_request(self):
+        CheckDeliveryCommand().handle()
+
     @responses.activate
     def test_should_correctly_handle_unknown_ats_state(self):
         responses.add(responses.POST, settings.ATS_URL, content_type='text/xml',
