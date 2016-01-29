@@ -52,12 +52,12 @@ class SMSValidationError(ATSSMSException):
     pass
 
 
-def serialize_ats_requests(*ats_requests):
+def serialize_ats_requests(*ats_serializable_objects):
     """
     Prepares XML with the given ATS elementary requests. The requests must be an instance of a class implementing
     the serialize_ats() method.
     """
-    not_serializable = set(request.__class__.__name__ for request in ats_requests
+    not_serializable = set(request.__class__.__name__ for request in ats_serializable_objects
                            if not hasattr(request, 'serialize_ats'))
     if not_serializable:
         raise SMSSendingError(
@@ -66,17 +66,17 @@ def serialize_ats_requests(*ats_requests):
 
     return ''.join(chain(
         (header.format(username=config.ATS_USERNAME, password=config.ATS_PASSWORD),),
-        (request.serialize_ats() for request in ats_requests),
+        (request.serialize_ats() for request in ats_serializable_objects),
         (footer,),
     ))
 
 
-def send_ats_requests(*ats_requests):
+def send_ats_requests(*ats_serializable_objects):
     """
     Performs the actual POST request with the given elementary ATS requests.
     """
-    requests_xml = serialize_ats_requests(*ats_requests)
-    logged_requests = [request for request in ats_requests if isinstance(request, models.Model)]
+    requests_xml = serialize_ats_requests(*ats_serializable_objects)
+    logged_requests = [request for request in ats_serializable_objects if isinstance(request, models.Model)]
     try:
         return requests.post(config.ATS_URL, data=requests_xml, headers={'Content-Type': 'text/xml'},
                              slug='ATS SMS', related_objects=logged_requests)
@@ -134,8 +134,6 @@ def send_template(recipient, slug='', context=None):
             content=Template(sms_template.body).render(Context(context)),
             state=config.ATS_STATES.DEBUG if settings.ATS_SMS_DEBUG else config.ATS_STATES.LOCAL_TO_SEND,
         )
-        if not settings.ATS_SMS_DEBUG:
-            send_and_update_sms_states(output_sms)
         return output_sms
     except config.get_sms_template_model().DoesNotExist:
         LOGGER.error(ugettext('SMS message template with slug {slug} does not exist. '

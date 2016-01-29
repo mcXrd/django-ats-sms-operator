@@ -11,4 +11,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         to_check = get_output_sms_model().objects.filter(
             state__in=(ATS_STATES.OK, ATS_STATES.NOT_SENT, ATS_STATES.SENT))
-        send_and_update_sms_states(*[DeliveryRequest(sms) for sms in to_check])
+        if to_check.exists():
+            send_and_update_sms_states(*[DeliveryRequest(sms) for sms in to_check])

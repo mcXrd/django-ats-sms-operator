@@ -28,7 +28,7 @@ class InputATSSMSmessageISCore(UIRESTModelISCore):
 
 class OutputATSSMSmesssageISCore(UIRESTModelISCore):
     model = config.get_output_sms_model()
-    list_display = ('sent_at', 'sender', 'recipient', 'content', 'state')
+    list_display = ('created_at', 'sent_at', 'sender', 'recipient', 'content', 'state')
     abstract = True
 
     def has_create_permission(self, request, obj=None):

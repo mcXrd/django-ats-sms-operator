@@ -35,6 +35,7 @@ class AbstractInputATSSMSmessage(SmartModel):
         abstract = True
         verbose_name = _('input ATS message')
         verbose_name_plural = _('input ATS messages')
+        ordering = ('-created_at',)
 
 
 @python_2_unicode_compatible
@@ -85,6 +86,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
         abstract = True
         verbose_name = _('output ATS message')
         verbose_name_plural = _('output ATS messages')
+        ordering = ('-created_at',)
 
 
 @python_2_unicode_compatible
