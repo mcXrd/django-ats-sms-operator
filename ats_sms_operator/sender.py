@@ -9,6 +9,7 @@ from django.db import models
 from django.conf import settings
 from django.template import Context, Template
 from django.utils import timezone
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 
 from chamber.shortcuts import get_object_or_none
@@ -93,7 +94,7 @@ def parse_response_codes(xml):
     code_tags = soup.find_all('code')
 
     LOGGER.warning(', '.join(
-        [config.ATS_STATES.get_label(c) if c in config.ATS_STATES.all else 'ATS returned an unknown state {}.'.format(c)
+        [force_text(config.ATS_STATES.get_label(c)) if c in config.ATS_STATES.all else 'ATS returned an unknown state {}.'.format(c)
          for c in [int(error_code.string) for error_code in code_tags if not error_code.attrs.get('uniq')]],
     ))
 
