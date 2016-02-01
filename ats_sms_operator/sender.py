@@ -123,7 +123,7 @@ def send_and_update_sms_states(*ats_requests):
             raise SMSValidationError(ugettext('SMS with uniq "{}" not found in DB.').format(uniq))
 
 
-def send_template(recipient, slug='', context=None):
+def send_template(recipient, slug='', context=None, **sms_attrs):
     """
     Use this function to send a SMS template to a given number.
     """
@@ -134,6 +134,7 @@ def send_template(recipient, slug='', context=None):
             recipient=recipient,
             content=Template(sms_template.body).render(Context(context)),
             state=config.ATS_STATES.DEBUG if settings.ATS_SMS_DEBUG else config.ATS_STATES.LOCAL_TO_SEND,
+            **sms_attrs
         )
         return output_sms
     except config.get_sms_template_model().DoesNotExist:

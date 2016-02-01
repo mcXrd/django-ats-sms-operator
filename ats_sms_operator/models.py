@@ -59,8 +59,8 @@ class AbstractOutputATSSMSmessage(SmartModel):
     def pre_save(self, change, *args, **kwargs):
         super(AbstractOutputATSSMSmessage, self).pre_save(change, *args, **kwargs)
         if not change:
-            self.sender = config.ATS_OUTPUT_SENDER_NUMBER
-            self.kw = config.ATS_PROJECT_KEYWORD
+            self.sender = self.sender or config.ATS_OUTPUT_SENDER_NUMBER
+            self.kw = self.kw or config.ATS_PROJECT_KEYWORD
 
     def serialize_ats(self):
         return """<sms type="text" uniq="{uniq}" sender="{sender}" recipient="{recipient}" opmid="{opmid}"

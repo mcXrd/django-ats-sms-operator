@@ -85,12 +85,16 @@ class OutputSMSTestCase(TestCase):
         'content': 'TĚXT1',
         'recipient': '+420731545945',
         'validity': 60,
+        'kw': '22222EEEEE',
+        'sender': '22222',
     }
 
     ATS_OUTPUT_SMS2 = {
         'content': 'TĚXT2',
         'recipient': '+420777555444',
         'validity': 60,
+        'kw': '22222EEEEE',
+        'sender': '22222',
     }
 
     def test_should_serialize_sms_message(self):
