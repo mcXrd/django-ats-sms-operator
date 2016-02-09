@@ -1,19 +1,16 @@
 from __future__ import unicode_literals
 
+import six
+
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+from chamber.models import SmartModel
+from chamber.utils import remove_accent
+
 from ats_sms_operator import config
 from ats_sms_operator.config import ATS_STATES
-
-
-try:
-    from chamber.models import SmartModel
-    from chamber.utils import remove_diacritics
-except ImportError:
-    from utils.models import SmartModel
-    from chamber.utils import remove_accent as remove_diacritics
 
 
 @python_2_unicode_compatible
@@ -56,6 +53,10 @@ class AbstractOutputATSSMSmessage(SmartModel):
     state = models.IntegerField(verbose_name=_('state'), null=False, blank=False, choices=STATE.choices,
                                 default=STATE.LOCAL_TO_SEND)
 
+    def clean_content(self):
+        if not config.ATS_USE_ACCENT:
+            self.content = six.text_type(remove_accent(six.text_type(self.content)))
+
     def pre_save(self, change, *args, **kwargs):
         super(AbstractOutputATSSMSmessage, self).pre_save(change, *args, **kwargs)
         if not change:
@@ -72,7 +73,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
 
     @property
     def ascii_content(self):
-        return remove_diacritics(self.content).decode('utf-8')
+        return remove_accent(self.content).decode('utf-8')
 
     @property
     def failed(self):
