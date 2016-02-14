@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, 'src/reversion')
+sys.path.insert(0, 'reversion')
 from setuptools import setup, find_packages
 from version import __version__
 
@@ -23,23 +23,17 @@ setup(
     author_email='dave@etianen.com',
     url='http://github.com/etianen/django-reversion',
     zip_safe = False,
-    packages=find_packages('src'),
-    package_dir = {
-        '': 'src',
-    },
+    package_dir = {'reversion': 'reversion'},
     package_data = {
-        'reversion': ['locale/*/LC_MESSAGES/django.*', 'templates/reversion/*.html']},
+        'reversion': ['locale/*/LC_MESSAGES/django.*']},
     cmdclass = cmdclass,
     install_requires = [
         'django>=1.6',
-        'django-chamber>=0.0.17'
+        'django-chamber>=0.1.8'
     ],
     extras_require = {
         'diff': [
             'diff_match_patch',
-        ],
-        'test': [
-            'coverage',
         ],
     },
     classifiers=[
@@ -57,7 +51,7 @@ setup(
         'Framework :: Django',
     ],
     dependency_links=[
-        'https://github.com/matllubos/django-chamber/tarball/0.0.17#egg=django-chamber-0.0.17',
+        'https://github.com/matllubos/django-chamber/tarball/0.1.8#egg=django-chamber-0.1.8',
     ],
 
 )
