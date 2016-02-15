@@ -124,6 +124,15 @@ def update_sms_states(parsed_response):
             raise SMSValidationError(ugettext('SMS with uniq "{}" not found in DB.').format(uniq))
 
 
+def update_sms_state_from_response(output_sms, parsed_response):
+    if output_sms.pk in parsed_response:
+        state = parsed_response[output_sms.pk]
+        output_sms.state = state if state in config.ATS_STATES.all else config.ATS_STATES.LOCAL_UNKNOWN_ATS_STATE
+        output_sms.sent_at = timezone.now()
+    else:
+        raise SMSSendingError(ugettext('ATS response misses status code of SMS with uniq {}').format(output_sms.pk))
+
+
 def send_and_update_sms_states(*ats_requests):
     """
     Glue function to perform sending ATS requests and updating the corresponsing SMS states in one go.
@@ -133,7 +142,7 @@ def send_and_update_sms_states(*ats_requests):
 
 def send_template(recipient, slug='', context=None, **sms_attrs):
     """
-    Use this function to send a SMS template to a given number.
+    Use this function to send an SMS template to a given number.
     """
     context = context or {}
     try:
@@ -147,9 +156,7 @@ def send_template(recipient, slug='', context=None, **sms_attrs):
         )
         if not settings.ATS_SMS_DEBUG or recipient in config.ATS_WHITELIST:
             parsed_response = send_and_parse_response(output_sms)
-            output_sms.save()
-            update_sms_states(parsed_response)
-            output_sms = config.get_output_sms_model().objects.get(pk=output_sms.pk)
+            update_sms_state_from_response(output_sms, parsed_response)
         return output_sms
     except config.get_sms_template_model().DoesNotExist:
         LOGGER.error(ugettext('SMS message template with slug {slug} does not exist. '
