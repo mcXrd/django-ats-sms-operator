@@ -19,6 +19,7 @@ ATS_USERNAME = getattr(settings, 'ATS_USERNAME')
 ATS_PASSWORD = getattr(settings, 'ATS_PASSWORD')
 ATS_URL = getattr(settings, 'ATS_URL', 'https://fik.atspraha.cz/gwfcgi/XMLServerWrapper.fcgi')
 ATS_USE_ACCENT = getattr(settings, 'ATS_USE_ACCENT', False)
+ATS_WHITELIST = getattr(settings, 'ATS_WHITELIST', ())
 
 
 def get_input_sms_model():

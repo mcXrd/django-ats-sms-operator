@@ -141,10 +141,11 @@ def send_template(recipient, slug='', context=None, **sms_attrs):
         output_sms = config.get_output_sms_model()(
             recipient=recipient,
             content=Template(sms_template.body).render(Context(context)),
-            state=config.ATS_STATES.DEBUG if settings.ATS_SMS_DEBUG else config.ATS_STATES.LOCAL_TO_SEND,
+            state=(config.ATS_STATES.DEBUG if settings.ATS_SMS_DEBUG and recipient not in config.ATS_WHITELIST
+                   else config.ATS_STATES.LOCAL_TO_SEND),
             **sms_attrs
         )
-        if not settings.ATS_SMS_DEBUG:
+        if not settings.ATS_SMS_DEBUG or recipient in config.ATS_WHITELIST:
             parsed_response = send_and_parse_response(output_sms)
             output_sms.save()
             update_sms_states(parsed_response)

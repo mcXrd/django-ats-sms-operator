@@ -197,7 +197,6 @@ class OutputSMSTestCase(TestCase):
         assert_equal(sms2.state, ATS_STATES.DELIVERED)
 
     @responses.activate
-    @override_settings(ATS_SMS_DEBUG=False)
     def test_sms_template_should_be_immediately_send(self):
         responses.add(responses.POST, settings.ATS_URL, content_type='text/xml',
                       body=self.ATS_SINGLE_SMS_REQUEST_RESPONSE_SENT.format(245), status=200)
