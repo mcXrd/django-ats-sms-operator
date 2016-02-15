@@ -5,8 +5,8 @@ from itertools import chain
 
 from bs4 import BeautifulSoup
 
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.template import Context, Template
 from django.utils import timezone
 from django.utils.encoding import force_text
@@ -14,7 +14,8 @@ from django.utils.translation import ugettext
 
 from chamber.shortcuts import get_object_or_none
 
-from ats_sms_operator import config, logged_requests as requests
+from ats_sms_operator import logged_requests as requests
+from ats_sms_operator import config
 
 
 LOGGER = logging.getLogger('ats_sms')
@@ -108,12 +109,12 @@ def send_and_parse_response(*ats_requests):
     return parse_response_codes(send_ats_requests(*ats_requests).text)
 
 
-def send_and_update_sms_states(*ats_requests):
+def update_sms_states(parsed_response):
     """
     Higher-level function performing serialization of ATS requests, parsing ATS server response and updating
     SMS messages state according the received response.
     """
-    for uniq, state in send_and_parse_response(*ats_requests).items():
+    for uniq, state in parsed_response.items():
         sms = get_object_or_none(config.get_output_sms_model(), pk=uniq)
         if sms:
             sms.state = state if state in config.ATS_STATES.all else config.ATS_STATES.LOCAL_UNKNOWN_ATS_STATE
@@ -123,6 +124,13 @@ def send_and_update_sms_states(*ats_requests):
             raise SMSValidationError(ugettext('SMS with uniq "{}" not found in DB.').format(uniq))
 
 
+def send_and_update_sms_states(*ats_requests):
+    """
+    Glue function to perform sending ATS requests and updating the corresponsing SMS states in one go.
+    """
+    update_sms_states(send_and_parse_response(*ats_requests))
+
+
 def send_template(recipient, slug='', context=None, **sms_attrs):
     """
     Use this function to send a SMS template to a given number.
@@ -130,14 +138,21 @@ def send_template(recipient, slug='', context=None, **sms_attrs):
     context = context or {}
     try:
         sms_template = config.get_sms_template_model().objects.get(slug=slug)
-        output_sms = config.get_output_sms_model().objects.create(
+        output_sms = config.get_output_sms_model()(
             recipient=recipient,
             content=Template(sms_template.body).render(Context(context)),
             state=config.ATS_STATES.DEBUG if settings.ATS_SMS_DEBUG else config.ATS_STATES.LOCAL_TO_SEND,
             **sms_attrs
         )
+        if not settings.ATS_SMS_DEBUG:
+            parsed_response = send_and_parse_response(output_sms)
+            output_sms.save()
+            update_sms_states(parsed_response)
+            output_sms = config.get_output_sms_model().objects.get(pk=output_sms.pk)
         return output_sms
     except config.get_sms_template_model().DoesNotExist:
         LOGGER.error(ugettext('SMS message template with slug {slug} does not exist. '
                               'The message to {recipient} cannot be sent.').format(recipient=recipient, slug=slug))
         raise SMSSendingError(ugettext('SMS message template with slug {} does not exist').format(slug))
+    finally:
+        output_sms.save()
