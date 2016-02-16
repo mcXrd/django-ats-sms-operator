@@ -7,7 +7,7 @@ import factory
 from factory import django as factory_django
 from factory import fuzzy
 
-from sender.models import InputSMS, OutputSMS
+from sender.models import InputSMS, OutputSMS, SMSTemplate
 
 
 class InputSMSFactory(factory_django.DjangoModelFactory):
@@ -40,3 +40,14 @@ class OutputSMSFactory(factory_django.DjangoModelFactory):
 
     class Meta:
         model = OutputSMS
+
+
+class SMSTemplateFactory(factory_django.DjangoModelFactory):
+
+    slug = 'test'
+    body = 'Does rendering context variables work? {{ variable }}'
+    created_at = fuzzy.FuzzyNaiveDateTime(start_dt=datetime.now() - timedelta(days=150))
+    changed_at = fuzzy.FuzzyNaiveDateTime(start_dt=datetime.now() - timedelta(days=150))
+
+    class Meta:
+        model = SMSTemplate

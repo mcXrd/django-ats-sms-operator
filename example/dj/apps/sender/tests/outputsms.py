@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import responses
-
 import requests
+import responses
 
 from django.conf import settings
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.utils import timezone
 
-from germanium.tools import assert_equal, assert_false, assert_is_not_none, assert_true, assert_raises
+from germanium.tools import assert_equal, assert_false, assert_is_not_none, assert_raises, assert_true
 
 from ats_sms_operator.config import ATS_STATES
 from ats_sms_operator.management.commands.check_sms_delivery import Command as CheckDeliveryCommand
 from ats_sms_operator.management.commands.send_sms import Command as SendCommand
-from ats_sms_operator.sender import (parse_response_codes, send_ats_requests, serialize_ats_requests,
-                                     send_and_update_sms_states, SMSValidationError, SMSSendingError)
+from ats_sms_operator.sender import (SMSSendingError, SMSValidationError, parse_response_codes,
+                                     send_and_update_sms_states, send_ats_requests, send_template,
+                                     serialize_ats_requests)
 
 from sender.models import OutputSMS
 
-from .models.factories import OutputSMSFactory
+from .models.factories import OutputSMSFactory, SMSTemplateFactory
 
 
 # TODO remove this when the function is added to chamber
@@ -56,6 +57,12 @@ class OutputSMSTestCase(TestCase):
                                             <code uniq="{}">123456</code>
                                             <d></d>
                                        </status>"""
+
+    ATS_SINGLE_SMS_REQUEST_RESPONSE_SENT = """<?xml version="1.0" encoding="UTF-8" ?>
+                                              <status>
+                                                  <code uniq="{}">0</code>
+                                                  <d></d>
+                                              </status>"""
 
     ATS_SMS_DELIVERY_REQUEST = """<?xml version="1.0" encoding="UTF-8" ?>
                                   <messages>
@@ -96,6 +103,10 @@ class OutputSMSTestCase(TestCase):
         'kw': '22222EEEEE',
         'sender': '22222',
     }
+
+    def setUp(self):
+        super(OutputSMSTestCase, self).setUp()
+        SMSTemplateFactory()
 
     def test_should_serialize_sms_message(self):
         sms = OutputSMSFactory(**self.ATS_OUTPUT_SMS1)
@@ -185,6 +196,18 @@ class OutputSMSTestCase(TestCase):
         assert_equal(sms1.state, ATS_STATES.SENT)
         assert_equal(sms2.state, ATS_STATES.DELIVERED)
 
+    @responses.activate
+    def test_sms_template_should_be_immediately_send(self):
+        responses.add(responses.POST, settings.ATS_URL, content_type='text/xml',
+                      body=self.ATS_SINGLE_SMS_REQUEST_RESPONSE_SENT.format(245), status=200)
+        sms1 = send_template('+420777111222', slug='test', context={'variable': 'context works'}, pk=245)
+
+        sms1 = OutputSMS.objects.get(pk=sms1.pk)
+
+        assert_equal(sms1.state, ATS_STATES.OK)
+        assert_true('context works' in sms1.content)
+        assert_is_not_none(sms1.sent_at)
+
     def test_send_command_should_not_send_empty_request(self):
         SendCommand().handle()
 
@@ -208,3 +231,7 @@ class OutputSMSTestCase(TestCase):
             assert_equal(log_lines_count + 1, len(log_lines))
             assert_true('999' in log_lines[-1])
             assert_false(response_codes)
+
+    def test_sender_should_not_have_any_spaces(self):
+        sms = OutputSMSFactory(sender='222 22')
+        assert_equal(sms.sender, '22222')
