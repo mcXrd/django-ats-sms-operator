@@ -19,7 +19,6 @@ except ImportError:
     from chamber.utils import remove_diacritics as remove_accent
 
 
-
 @python_2_unicode_compatible
 class AbstractInputATSSMSmessage(SmartModel):
 
