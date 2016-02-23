@@ -20,6 +20,7 @@ ATS_PASSWORD = getattr(settings, 'ATS_PASSWORD')
 ATS_URL = getattr(settings, 'ATS_URL', 'https://fik.atspraha.cz/gwfcgi/XMLServerWrapper.fcgi')
 ATS_USE_ACCENT = getattr(settings, 'ATS_USE_ACCENT', False)
 ATS_WHITELIST = getattr(settings, 'ATS_WHITELIST', ())
+ATS_PROCESSING_TIMEOUT = getattr(settings, 'ATS_PROCESSING_TIMEOUT', 10)
 
 
 def get_input_sms_model():
@@ -83,4 +84,7 @@ ATS_STATES = ChoicesNumEnum(
     ('LOCAL_UNKNOWN_ATS_STATE', _('ATS returned state not known to us'), -1),
     ('LOCAL_TO_SEND', _('to be sent to ATS'), -2),
     ('DEBUG', _('debug SMS'), -3),
+    ('PROCESSING', _('processing'), -4),
+    ('LOCAL_ERROR', _('local error'), -5),
+    ('TIMEOUT', _('timeout'), -6),
 )

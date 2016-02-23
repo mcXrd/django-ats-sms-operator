@@ -1,14 +1,14 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from chamber.utils.datastructures import ChoicesNumEnum, ChoicesEnum
-from chamber.models.fields import SouthMixin
-
 from is_core.forms.widgets import SmartWidgetMixin
+
+from chamber.models.fields import SouthMixin
+from chamber.utils.datastructures import ChoicesEnum, ChoicesNumEnum
 
 
 class SequenceSelect(SmartWidgetMixin, forms.Select):

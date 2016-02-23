@@ -147,20 +147,25 @@ def send_template(recipient, slug='', context=None, **sms_attrs):
     context = context or {}
     try:
         sms_template = config.get_sms_template_model().objects.get(slug=slug)
-        output_sms = config.get_output_sms_model()(
+        output_sms = config.get_output_sms_model().objects.create(
             recipient=recipient,
             content=Template(sms_template.body).render(Context(context)),
             state=(config.ATS_STATES.DEBUG if settings.ATS_SMS_DEBUG and recipient not in config.ATS_WHITELIST
-                   else config.ATS_STATES.LOCAL_TO_SEND),
+                   else config.ATS_STATES.PROCESSING),
             **sms_attrs
         )
         if not settings.ATS_SMS_DEBUG or recipient in config.ATS_WHITELIST:
             parsed_response = send_and_parse_response(output_sms)
             update_sms_state_from_response(output_sms, parsed_response)
+            output_sms.save()
         return output_sms
     except config.get_sms_template_model().DoesNotExist:
         LOGGER.error(ugettext('SMS message template with slug {slug} does not exist. '
                               'The message to {recipient} cannot be sent.').format(recipient=recipient, slug=slug))
-        raise SMSSendingError(ugettext('SMS message template with slug {} does not exist').format(slug))
-    finally:
+        output_sms.state = config.ATS_STATES.LOCAL_ERROR
         output_sms.save()
+        raise SMSSendingError(ugettext('SMS message template with slug {} does not exist').format(slug))
+    except SMSSendingError:
+        output_sms.state = config.ATS_STATES.LOCAL_TO_SEND
+        output_sms.save()
+        raise

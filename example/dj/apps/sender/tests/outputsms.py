@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from datetime import timedelta
+
 import requests
 import responses
 
@@ -9,10 +11,12 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils import timezone
 
+from germanium.anotations import turn_off_auto_now
 from germanium.tools import assert_equal, assert_false, assert_is_not_none, assert_raises, assert_true
 
 from ats_sms_operator.config import ATS_STATES
 from ats_sms_operator.management.commands.check_sms_delivery import Command as CheckDeliveryCommand
+from ats_sms_operator.management.commands.clean_processing_sms import Command as CleanProcessingCommand
 from ats_sms_operator.management.commands.send_sms import Command as SendCommand
 from ats_sms_operator.sender import (SMSSendingError, SMSValidationError, parse_response_codes,
                                      send_and_update_sms_states, send_ats_requests, send_template,
@@ -235,3 +239,22 @@ class OutputSMSTestCase(TestCase):
     def test_sender_should_not_have_any_spaces(self):
         sms = OutputSMSFactory(sender='222 22')
         assert_equal(sms.sender, '22222')
+
+    @turn_off_auto_now(OutputSMS, 'changed_at')
+    def test_processing_sms_is_timeouted(self):
+        sms1 = OutputSMSFactory(state=ATS_STATES.PROCESSING, changed_at=timezone.now())
+        CleanProcessingCommand().execute()
+        assert_equal(OutputSMS.objects.get(pk=sms1.pk).state, ATS_STATES.PROCESSING)
+        sms2 = OutputSMSFactory(state=ATS_STATES.PROCESSING, changed_at=timezone.now() - timedelta(seconds=11))
+        CleanProcessingCommand().execute()
+        assert_equal(OutputSMS.objects.get(pk=sms2.pk).state, ATS_STATES.TIMEOUT)
+
+    @responses.activate
+    def test_sms_template_for_unavailable_service_should_create_message_with_state_local_to_send(self):
+        def raise_exception(request):
+            raise requests.exceptions.HTTPError()
+
+        responses.add_callback(responses.POST, settings.ATS_URL, content_type='text/xml', callback=raise_exception)
+        assert_raises(SMSSendingError, send_template, '+420777111222', slug='test',
+                      context={'variable': 'context works'}, pk=245)
+        assert_equal(OutputSMS.objects.get(pk=245).state, ATS_STATES.LOCAL_TO_SEND)
