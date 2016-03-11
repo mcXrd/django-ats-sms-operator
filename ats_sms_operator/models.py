@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import six
+
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
@@ -7,7 +9,6 @@ from django.utils.translation import ugettext_lazy as _
 from ats_sms_operator import config
 from ats_sms_operator.config import ATS_STATES
 
-import six
 
 try:
     from chamber.models import SmartModel
@@ -72,11 +73,12 @@ class AbstractOutputATSSMSmessage(SmartModel):
         self.kw = self.kw or config.ATS_PROJECT_KEYWORD
 
     def serialize_ats(self):
-        return """<sms type="text" uniq="{uniq}" sender="{sender}" recipient="{recipient}" opmid="{opmid}"
+        return """<sms type="text" uniq="{prefix}{uniq}" sender="{sender}" recipient="{recipient}" opmid="{opmid}"
                       dlr="{dlr}" validity="{validity}" kw="{kw}">
                         <body order="0" billing="{billing}">{content}</body>
-                  </sms>""".format(uniq=self.pk, sender=self.sender, recipient=self.recipient, opmid=self.opmid,
-                                   dlr=int(self.dlr), validity=self.validity, kw=self.kw, billing=int(self.billing),
+                  </sms>""".format(prefix=config.ATS_UNIQ_PREFIX, uniq=self.pk, sender=self.sender,
+                                   recipient=self.recipient, opmid=self.opmid, dlr=int(self.dlr),
+                                   validity=self.validity, kw=self.kw, billing=int(self.billing),
                                    content=self.ascii_content)
 
     @property

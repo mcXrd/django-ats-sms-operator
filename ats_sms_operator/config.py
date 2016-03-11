@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from chamber.utils.datastructures import ChoicesNumEnum
 
+
 # TODO remove the try-except once old is-core does not have to be supported
 try:
     from django.apps import get_model
@@ -21,6 +22,7 @@ ATS_URL = getattr(settings, 'ATS_URL', 'https://fik.atspraha.cz/gwfcgi/XMLServer
 ATS_USE_ACCENT = getattr(settings, 'ATS_USE_ACCENT', False)
 ATS_WHITELIST = getattr(settings, 'ATS_WHITELIST', ())
 ATS_PROCESSING_TIMEOUT = getattr(settings, 'ATS_PROCESSING_TIMEOUT', 10)
+ATS_UNIQ_PREFIX = getattr(settings, 'ATS_UNIQ_PREFIX', '')  # To mitigate conflicts in uniqs on production and accept
 
 
 def get_input_sms_model():

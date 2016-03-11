@@ -39,7 +39,8 @@ class DeliveryRequest(object):
         self.output_sms = output_sms
 
     def serialize_ats(self):
-        return """<dlr uniq="{}">{}</dlr>""".format(self.output_sms.pk, self.output_sms.pk)
+        return """<dlr uniq="{prefix}{pk}">{prefix}{pk}</dlr>""".format(
+            pk=self.output_sms.pk, prefix=config.ATS_UNIQ_PREFIX)
 
 
 class ATSSMSException(Exception):
@@ -95,11 +96,14 @@ def parse_response_codes(xml):
     code_tags = soup.find_all('code')
 
     LOGGER.warning(', '.join(
-        [force_text(config.ATS_STATES.get_label(c)) if c in config.ATS_STATES.all else 'ATS returned an unknown state {}.'.format(c)
+        [(force_text(config.ATS_STATES.get_label(c))
+          if c in config.ATS_STATES.all
+          else 'ATS returned an unknown state {}.'.format(c))
          for c in [int(error_code.string) for error_code in code_tags if not error_code.attrs.get('uniq')]],
     ))
 
-    return {int(code.attrs['uniq']): int(code.string) for code in code_tags if code.attrs.get('uniq')}
+    return {int(code.attrs['uniq'].lstrip(config.ATS_UNIQ_PREFIX)): int(code.string)
+            for code in code_tags if code.attrs.get('uniq')}
 
 
 def send_and_parse_response(*ats_requests):
