@@ -219,3 +219,4 @@ ATS_PROJECT_KEYWORD = '22222EEEEE'
 ATS_URL = 'http://fik.atspraha.cz/gwfcgi/XMLServerWrapper.fcgi'
 ATS_SMS_DEBUG = True
 ATS_WHITELIST = ('+420777111222',)
+ATS_UNIQ_PREFIX = 'ACCEPT'
