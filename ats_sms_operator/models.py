@@ -6,18 +6,11 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+from chamber.models import SmartModel
+from chamber.utils import remove_accent
+
 from ats_sms_operator import config
 from ats_sms_operator.config import ATS_STATES
-
-
-try:
-    from chamber.models import SmartModel
-except ImportError:
-    from utils.models import SmartModel
-try:
-    from chamber.utils import remove_accent
-except ImportError:
-    from chamber.utils import remove_diacritics as remove_accent
 
 
 @python_2_unicode_compatible
@@ -67,8 +60,8 @@ class AbstractOutputATSSMSmessage(SmartModel):
     def clean_sender(self):
         self.sender = ''.join(self.sender.split())
 
-    def pre_save(self, change, *args, **kwargs):
-        super(AbstractOutputATSSMSmessage, self).pre_save(change, *args, **kwargs)
+    def _pre_save(self, change, *args, **kwargs):
+        super(AbstractOutputATSSMSmessage, self)._pre_save(change, *args, **kwargs)
         self.sender = self.sender or config.ATS_OUTPUT_SENDER_NUMBER
         self.kw = self.kw or config.ATS_PROJECT_KEYWORD
 

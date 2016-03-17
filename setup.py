@@ -10,7 +10,7 @@ setup(
     keywords='django, sms receiver',
     author='Lubos Matl, Oskar Hollmann',
     author_email='matllubos@gmail.com, oskar@hollmann.me',
-    url='https://github.com/matllubos/django-ats-sms-operator',
+    url='https://github.com/druids/django-ats-sms-operator',
     license='LGPL',
     package_dir={'ats_sms_operator': 'ats_sms_operator'},
     include_package_data=True,
