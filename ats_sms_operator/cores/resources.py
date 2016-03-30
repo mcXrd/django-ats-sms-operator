@@ -42,7 +42,7 @@ class InputATSSMSmessageResource(RESTResource):
     def _deserialize(self):
         soup = BeautifulSoup(force_text(self.request.body), 'html.parser')
 
-        self.request.data = ([merge(msg.attrs, {'content': msg.string}) for msg in soup.messages.find_all('sms')]
+        self.request.data = ([merge(msg.attrs, {'content': msg.string or ''}) for msg in soup.messages.find_all('sms')]
                              if soup.messages else ())
         return self.request
 

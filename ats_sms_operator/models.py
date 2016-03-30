@@ -23,7 +23,7 @@ class AbstractInputATSSMSmessage(SmartModel):
     okey = models.CharField(verbose_name=_('okey'), null=False, blank=False, max_length=255)
     opid = models.CharField(verbose_name=_('opid'), null=False, blank=False, max_length=255)
     opmid = models.CharField(verbose_name=_('opmid'), null=False, blank=True, max_length=255)
-    content = models.TextField(verbose_name=_('content'), null=False, blank=False)
+    content = models.TextField(verbose_name=_('content'), null=False, blank=True)
 
     def __str__(self):
         return self.sender
