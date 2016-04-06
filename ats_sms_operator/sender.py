@@ -153,6 +153,7 @@ def send_template(recipient, slug='', context=None, **sms_attrs):
         sms_template = config.get_sms_template_model().objects.get(slug=slug)
         output_sms = config.get_output_sms_model().objects.create(
             recipient=recipient,
+            template_slug=slug,
             content=Template(sms_template.body).render(Context(context)),
             state=(config.ATS_STATES.DEBUG if settings.ATS_SMS_DEBUG and recipient not in config.ATS_WHITELIST
                    else config.ATS_STATES.PROCESSING),
