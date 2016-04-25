@@ -8,6 +8,8 @@ from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.encoding import force_text
 
+from chamber.exceptions import PersistenceException
+
 from bs4 import BeautifulSoup
 from ipware.ip import get_ip
 
@@ -53,23 +55,27 @@ class InputATSSMSmessageResource(RESTResource):
             ('</status>',)
         )), 'text/xml'
 
+    def _get_or_create_input_message(self, message):
+        try:
+            return config.get_input_sms_model().objects.get_or_create(
+                received_at=timezone.make_aware(datetime.strptime(message.get('ts'), "%Y-%m-%d %H:%M:%S"),
+                                                timezone.get_default_timezone()),
+                **{k: v for k, v in message.items()
+                   if k in ('uniq', 'sender', 'recipient', 'okey', 'opid', 'opmid', 'content')}
+            )
+        except (IntegrityError, TypeError, PersistenceException, ValueError):
+            return (None, False)
+
     def post(self):
         data = self.request.data
         result = []
         for message in data:
-            try:
-                input_message, created = config.get_input_sms_model().objects.get_or_create(
-                    received_at=timezone.make_aware(datetime.strptime(message.get('ts'), "%Y-%m-%d %H:%M:%S"),
-                                                    timezone.get_default_timezone()),
-                    **{k: v for k, v in message.items()
-                       if k in ('uniq', 'sender', 'recipient', 'okey', 'opid', 'opmid', 'content')}
-                )
-                code = (config.ATS_STATES.DELIVERED if self.callback_function(input_message, created) else
-                        config.ATS_STATES.NOT_DELIVERED)
-                result.append((code, input_message.uniq))
-            except (IntegrityError, TypeError):
-                if 'uniq' in message:
-                    result.append((config.ATS_STATES.NOT_DELIVERED, message.get('uniq')))
+            input_message, created = self._get_or_create_input_message(message)
+            if input_message:
+                self.callback_function(input_message, created)
+                result.append((config.ATS_STATES.DELIVERED, input_message.uniq))
+            else:
+                result.append((config.ATS_STATES.NOT_DELIVERED, message.get('uniq', '')))
 
         return result
 
