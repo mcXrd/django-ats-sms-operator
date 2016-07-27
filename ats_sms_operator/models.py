@@ -96,7 +96,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
 
 @python_2_unicode_compatible
 class AbstractSMSTemplate(SmartModel):
-    slug = models.SlugField(max_length=100, null=False, blank=False, unique=True, verbose_name=_('slug'))
+    slug = models.SlugField(max_length=100, null=False, blank=False, primary_key=True, verbose_name=_('slug'))
     body = models.TextField(null=True, blank=False, verbose_name=_('message body'))
 
     def __str__(self):
