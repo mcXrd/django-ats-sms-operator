@@ -1,16 +1,13 @@
 from django.contrib.auth.models import User
 
-try:
-    from is_core.main import UIRESTModelISCore
-except ImportError:
-    from is_core.main import UIRestModelISCore as UIRESTModelISCore
+from is_core.main import UIRESTModelISCore
 
 from sender.models import OutputSMS
 
 from ats_sms_operator.cores import InputATSSMSmessageISCore
 
 
-class UserIsCore(UIRESTModelISCore):
+class UserISCore(UIRESTModelISCore):
     model = User
     list_display = ('id', '_obj_name')
 

@@ -77,7 +77,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
 
     @property
     def ascii_content(self):
-        return remove_accent(self.content).decode('utf-8')
+        return remove_accent(self.content)
 
     @property
     def failed(self):
