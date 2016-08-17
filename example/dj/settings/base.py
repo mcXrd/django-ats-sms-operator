@@ -103,7 +103,7 @@ MIDDLEWARE_CLASSES = (
     'is_core.auth_token.middleware.TokenAuthenticationMiddlewares',
     'django.contrib.messages.middleware.MessageMiddleware',
     'is_core.middleware.RequestKwargsMiddleware',
-    'is_core.middleware.HttpExceptionsMiddleware',
+    'is_core.middleware.HTTPExceptionsMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
