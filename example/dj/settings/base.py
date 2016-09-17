@@ -12,7 +12,6 @@ PROJECT_DIR = os.path.abspath(
 )
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -90,11 +89,6 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'xe8vyy&0cw*&za++fq(%w6cx=)k53*m-@$1&pst=*oe(b#zgo+'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -106,16 +100,6 @@ MIDDLEWARE_CLASSES = (
     'is_core.middleware.HTTPExceptionsMiddleware',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.request',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.request',
-    'django.core.context_processors.debug',
-    'django.contrib.messages.context_processors.messages',
-)
-
 INTERNAL_IPS = ('127.0.0.1',)
 
 ROOT_URLCONF = 'dj.urls'
@@ -123,9 +107,6 @@ ROOT_URLCONF = 'dj.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'dj.wsgi.application'
 
-TEMPLATE_DIRS = (
-    os.path.join(PROJECT_DIR, 'templates'),
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -143,7 +124,8 @@ INSTALLED_APPS = (
     'is_core',
     'is_core.auth_token',
     'block_snippets',
-    'south'
+
+    'ats_sms_operator',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -220,3 +202,32 @@ ATS_URL = 'http://fik.atspraha.cz/gwfcgi/XMLServerWrapper.fcgi'
 ATS_SMS_DEBUG = True
 ATS_WHITELIST = ('+420777111222',)
 ATS_UNIQ_PREFIX = 'ACCEPT'
+
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(PROJECT_DIR, 'templates'),
+        ],
+        'OPTIONS': {
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.request',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+            ],
+            'loaders': [
+                # insert your TEMPLATE_LOADERS here
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ],
+            'debug': False
+        },
+    },
+]

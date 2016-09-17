@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from six import StringIO
+
 from datetime import timedelta
 
 import requests
 import responses
 
 from django.conf import settings
+from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 
@@ -14,9 +17,6 @@ from germanium.anotations import data_provider, turn_off_auto_now
 from germanium.tools import assert_equal, assert_false, assert_is_not_none, assert_raises, assert_true
 
 from ats_sms_operator.config import ATS_STATES
-from ats_sms_operator.management.commands.check_sms_delivery import Command as CheckDeliveryCommand
-from ats_sms_operator.management.commands.clean_processing_sms import Command as CleanProcessingCommand
-from ats_sms_operator.management.commands.send_sms import Command as SendCommand
 from ats_sms_operator.sender import (SMSSendingError, SMSValidationError, parse_response_codes,
                                      send_and_update_sms_states, send_ats_requests, send_template,
                                      serialize_ats_requests)
@@ -182,7 +182,7 @@ class OutputSMSTestCase(TestCase):
         sms1 = OutputSMSFactory(pk=self.ATS_TEST_UNIQ['uniq1'], **self.ATS_OUTPUT_SMS1)
         sms2 = OutputSMSFactory(pk=self.ATS_TEST_UNIQ['uniq2'], **self.ATS_OUTPUT_SMS2)
 
-        SendCommand().handle()
+        call_command('send_sms', stdout=StringIO(), stderr=StringIO())
 
         sms1 = OutputSMS.objects.get(pk=sms1.pk)
         sms2 = OutputSMS.objects.get(pk=sms2.pk)
@@ -203,7 +203,7 @@ class OutputSMSTestCase(TestCase):
         sms1 = OutputSMSFactory(pk=self.ATS_TEST_UNIQ['uniq1'], sent_at=timezone.now(), state=ATS_STATES.OK,
                                 **self.ATS_OUTPUT_SMS1)
 
-        CheckDeliveryCommand().handle()
+        call_command('check_sms_delivery', stdout=StringIO(), stderr=StringIO())
 
         sms1 = OutputSMS.objects.get(pk=sms1.pk)
         sms2 = OutputSMS.objects.get(pk=sms2.pk)
@@ -228,10 +228,10 @@ class OutputSMSTestCase(TestCase):
         assert_is_not_none(sms1.sent_at)
 
     def test_send_command_should_not_send_empty_request(self):
-        SendCommand().handle()
+        call_command('send_sms', stdout=StringIO(), stderr=StringIO())
 
     def test_delivery_command_should_not_send_empty_request(self):
-        CheckDeliveryCommand().handle()
+        call_command('check_sms_delivery', stdout=StringIO(), stderr=StringIO())
 
     @responses.activate
     def test_should_correctly_handle_unknown_ats_state(self):
@@ -258,10 +258,10 @@ class OutputSMSTestCase(TestCase):
     @turn_off_auto_now(OutputSMS, 'changed_at')
     def test_processing_sms_is_timeouted(self):
         sms1 = OutputSMSFactory(state=ATS_STATES.PROCESSING, changed_at=timezone.now())
-        CleanProcessingCommand().execute()
+        call_command('clean_processing_sms', stdout=StringIO(), stderr=StringIO())
         assert_equal(OutputSMS.objects.get(pk=sms1.pk).state, ATS_STATES.PROCESSING)
         sms2 = OutputSMSFactory(state=ATS_STATES.PROCESSING, changed_at=timezone.now() - timedelta(seconds=11))
-        CleanProcessingCommand().execute()
+        call_command('clean_processing_sms', stdout=StringIO(), stderr=StringIO())
         assert_equal(OutputSMS.objects.get(pk=sms2.pk).state, ATS_STATES.TIMEOUT)
 
     @responses.activate
