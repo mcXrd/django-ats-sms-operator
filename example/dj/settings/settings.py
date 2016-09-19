@@ -1,7 +1,7 @@
 from dj.settings.base import *
 
 
-DEBUG = TEMPLATE_DEBUG = THUMBNAIL_DEBUG = True
+DEBUG = TEMPLATES[0]['OPTIONS']['debug'] = THUMBNAIL_DEBUG = True
 
 ALLOWED_HOSTS = ['localhost']
 

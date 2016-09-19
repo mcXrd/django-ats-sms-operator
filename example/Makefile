@@ -79,7 +79,7 @@ initdb:
 	mkdir -p $(LOCALPATH)/var/db
 
 syncdb:
-	$(PYTHON_BIN)/python manage.py syncdb --noinput $(DJANGO_POSTFIX)
+	$(PYTHON_BIN)/python manage.py migrate --run-syncdb --noinput $(DJANGO_POSTFIX)
 	$(MAKE) migrate
 
 initdata: syncmedia
