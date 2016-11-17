@@ -25,6 +25,7 @@ def normalize_phone_number(number):
 class MultiplePhoneField(CharField):
     default_error_messages = {
         'invalid_phones': _('Some phone number are not valid. Invalid phone numbers: {}.'),
+        'required': _('This field is required.'),
     }
 
     def __init__(self, *args, **kwargs):
@@ -32,10 +33,14 @@ class MultiplePhoneField(CharField):
         super(MultiplePhoneField, self).__init__(*args, **kwargs)
 
     def clean(self, phones):
-        normalized_phones = list(OrderedDict.fromkeys(normalize_phone_number(phone) for phone in phones))
+        normalized_phones = list(OrderedDict.fromkeys(normalize_phone_number(phone) for phone in phones
+                                                      if normalize_phone_number(phone)))
         invalid_phones = [phone for phone in normalized_phones if not phonenumber.to_python(phone).is_valid()]
         if invalid_phones:
             raise ValidationError(self.default_error_messages['invalid_phones'].format(', '.join(invalid_phones)))
+        if not normalized_phones and self.required:
+            raise ValidationError(self.default_error_messages['required'])
+
         return normalized_phones
 
 
