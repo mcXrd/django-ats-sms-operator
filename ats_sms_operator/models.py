@@ -54,7 +54,11 @@ class AbstractOutputATSSMSmessage(SmartModel):
                                 default=STATE.LOCAL_TO_SEND)
     template_slug = models.SlugField(max_length=100, null=True, blank=True, verbose_name=_('slug'))
 
+    def remove_nbsp(self, s):
+        return s.replace('&nbsp;', ' ')
+
     def clean_content(self):
+        self.content = self.remove_nbsp(self.content)
         if not config.ATS_USE_ACCENT:
             self.content = six.text_type(remove_accent(six.text_type(self.content)))
 
@@ -77,7 +81,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
 
     @property
     def ascii_content(self):
-        return remove_accent(self.content)
+        return self.remove_nbsp(remove_accent(self.content))
 
     @property
     def failed(self):
