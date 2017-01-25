@@ -49,6 +49,7 @@ initvirtualenv:
 	$(PYTHON_BIN)/pip install --upgrade pip==1.5
 	$(PYTHON_BIN)/pip install six --no-use-wheel --upgrade
 	$(PYTHON_BIN)/pip install packaging --no-use-wheel --upgrade
+	$(PYTHON_BIN)/pip install appdirs --no-use-wheel --upgrade
 	$(PYTHON_BIN)/pip install setuptools --no-use-wheel --upgrade
 
 installjs:
