@@ -12,5 +12,5 @@ https://github.com/jezdez/django_compressor/tarball/develop#egg=django_compresso
 responses==0.5.0
 beautifulsoup4==4.4.1
 django-ipware>=1.0.0
-factory-boy==2.7.0
+factory-boy==2.8.1
 django-phonenumber-field==1.1.0
