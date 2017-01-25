@@ -55,7 +55,11 @@ class AbstractOutputATSSMSmessage(SmartModel):
     template_slug = models.SlugField(max_length=100, null=True, blank=True, verbose_name=_('slug'))
 
     def remove_nbsp(self, s):
-        return s.replace('&nbsp;', chr(160))
+        try:
+            return s.replace('&nbsp;', chr(160))
+        except UnicodeDecodeError:
+            #python 2
+            return s.replace('&nbsp;', ' ')
 
     def clean_content(self):
         self.content = self.remove_nbsp(self.content)
