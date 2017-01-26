@@ -6,6 +6,8 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+import html
+
 from chamber.models import SmartModel
 from chamber.utils import remove_accent
 
@@ -54,15 +56,8 @@ class AbstractOutputATSSMSmessage(SmartModel):
                                 default=STATE.LOCAL_TO_SEND)
     template_slug = models.SlugField(max_length=100, null=True, blank=True, verbose_name=_('slug'))
 
-    def remove_nbsp(self, s):
-        try:
-            return s.replace('&nbsp;', chr(160))
-        except UnicodeDecodeError:
-            #python 2
-            return s.replace('&nbsp;', ' ')
-
     def clean_content(self):
-        self.content = self.remove_nbsp(self.content)
+        self.content = html.unescape(self.content)
         if not config.ATS_USE_ACCENT:
             self.content = six.text_type(remove_accent(six.text_type(self.content)))
 
@@ -85,7 +80,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
 
     @property
     def ascii_content(self):
-        return remove_accent(self.remove_nbsp(self.content))
+        return remove_accent(html.unescape(self.content))
 
     @property
     def failed(self):
