@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from django.utils.encoding import force_text
+
 from germanium.rest import RESTTestCase
 from germanium.tools import assert_equal
 
@@ -43,7 +45,7 @@ class InputSMSTestCase(RESTTestCase):
         response = self.post(self.API_URL, self.ATS_SMS_POST_PAYLOAD.format(self.INVALID_MESSAGES))
         self.assert_http_ok(response)  # ATS requires to return 200 in every situation
         assert_equal(sms_count + 1, InputSMS.objects.count())
-        assert_equal(response.content.replace('\n', ' ').replace('\r', ''),
+        assert_equal(force_text(response.content).replace('\n', ' ').replace('\r', ''),
                      '<?xml version="1.0" encoding="UTF-8" ?> <status> <code uniq="">24</code> '
                      '<code uniq="invalid">24</code> <code uniq="4">24</code> '
                      '<code uniq="5">23</code> </status>')
