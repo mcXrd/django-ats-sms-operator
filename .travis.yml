@@ -2,15 +2,19 @@ language: python
 
 python:
   - "2.7"
+  - "3.4"
+  - "3.5"
 
 # command to install dependencies
 install:
-    cd ./example;
-    make install;
+  - cd example
+  - pip install --process-dependency-links --allow-all-external -r requirements/base.txt
+  - ln -sf $(pwd)/../ats_sms_operator/ $(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+  - mkdir -p var/log
 
 # command to run tests
 script:
-   make test
+  coverage run --omit */site-packages/*,*/migrations/*,*/lib/* manage.py test sender.tests --settings=dj.settings.settings -v 2
 
 addons:
   apt:

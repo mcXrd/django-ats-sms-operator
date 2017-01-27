@@ -49,7 +49,7 @@ class AbstractOutputATSSMSmessage(SmartModel):
     kw = models.CharField(verbose_name=_('project keyword'), null=False, blank=False, max_length=255)
     lower_priority = models.BooleanField(verbose_name=_('lower priority'), null=False, blank=False, default=True)
     billing = models.BooleanField(verbose_name=_('billing'), null=False, blank=False, default=False)
-    content = models.TextField(verbose_name=_('content'), null=False, blank=False, max_length=160)
+    content = models.TextField(verbose_name=_('content'), null=False, blank=False, max_length=700)
     state = models.IntegerField(verbose_name=_('state'), null=False, blank=False, choices=STATE.choices,
                                 default=STATE.LOCAL_TO_SEND)
     template_slug = models.SlugField(max_length=100, null=True, blank=True, verbose_name=_('slug'))
